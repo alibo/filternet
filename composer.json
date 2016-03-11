@@ -1,0 +1,7 @@
+{
+    "require": {
+        "league/climate": "^3.2",
+        "react/dns": "~0.4.0"
+    },
+    "minimum-stability": "dev"
+}
