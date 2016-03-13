@@ -1,7 +1,33 @@
 {
+    "name": "filternet/filternet",
+    "description": "A simple utility to check whether the given url/domain is blocked in Iran.",
+    "keywords": [
+        "filternet",
+        "censorship",
+        "iran",
+        "filtering",
+        "sni",
+        "dns-hijacking"
+    ],
     "require": {
-        "league/climate": "^3.2",
-        "react/dns": "~0.4.0"
+        "php": ">=5.5.9",
+        "react/dns": "~0.4.0",
+        "symfony/console": "^3.0"
     },
-    "minimum-stability": "dev"
+    "autoload": {
+        "psr-4": {
+            "Filternet\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ali borhani",
+            "email": "aliborhani1@gmail.com"
+        }
+    ],
+    "bin": [
+        "filternet"
+    ],
+    "minimum-stability": "stable"
 }
