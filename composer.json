@@ -10,9 +10,9 @@
         "dns-hijacking"
     ],
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=5.6",
         "react/dns": "~0.4.0",
-        "symfony/console": "^3.0"
+        "symfony/console": "~2.8|~3.0"
     },
     "autoload": {
         "psr-4": {
