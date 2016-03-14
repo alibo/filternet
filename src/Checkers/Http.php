@@ -8,6 +8,11 @@ class Http
 {
 
     /**
+     * @var int
+     */
+    private $timeout = 15;
+
+    /**
      * Check status of url
      *
      * @param string $url
@@ -27,6 +32,28 @@ class Http
     }
 
     /**
+     * Is url blocked?
+     *
+     * @param string $url
+     * @return bool
+     */
+    public function blocked($url) {
+        $response = $this->request($url);
+
+        return $this->isBlocked($response);
+    }
+
+    /**
+     * Set timeout
+     *
+     * @param int $timeout
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+
+    /**
      * Create stream context
      *
      * @return resource
@@ -38,7 +65,7 @@ class Http
                 'method' => 'GET',
                 'follow_location' => false,
                 'ignore_errors' => true,
-                'timeout' => 15,
+                'timeout' => $this->timeout,
             ],
         ];
 
@@ -63,7 +90,7 @@ class Http
      * @param string $html
      * @return bool
      */
-    protected function blocked($html)
+    protected function isBlocked($html)
     {
         $titlePattern = '/<title>10\.10\.34\.3[4-6]<\/title>/ism';
         $iframePattern = '/<iframe.*?src="http:\/\/10\.10\.34\.3[4-6]/ism';
@@ -85,7 +112,7 @@ class Http
             return trim($matches[1]);
         }
 
-        return '<<UNKNOWN>>';
+        return $this->unknownText();
     }
 
     /**
@@ -97,7 +124,7 @@ class Http
     protected function findStatus($response)
     {
         if ($response !== false) {
-            return $this->blocked($response)
+            return $this->isBlocked($response)
                 ? $this->blockedText()
                 : $this->openText();
         }
@@ -147,4 +174,6 @@ class Http
     {
         return '<fg=blue>~UNKNOWN~</>';
     }
+
+
 }

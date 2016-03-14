@@ -41,6 +41,23 @@ class Dns
     }
 
     /**
+     * Is dns blocked?
+     *
+     * @param string $domain
+     * @param callable $callback
+     * @param string $server
+     */
+    public function blocked($domain, callable $callback, $server = '8.8.8.8')
+    {
+        $dns = $this->createDns($server);
+
+        $dns->resolve($domain)
+            ->then(function ($ip) use ($callback) {
+                $callback($this->isBlocked($ip));
+            });
+    }
+
+    /**
      * Create dns resolver object
      *
      * @param string $server
