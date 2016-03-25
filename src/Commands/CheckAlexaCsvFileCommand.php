@@ -30,6 +30,16 @@ class CheckAlexaCsvFileCommand extends Command
      * @var array
      */
     protected $sites = [];
+    /**
+     * HTTP Timeout
+     *
+     * @var int
+     */
+    protected $httpTimeout;
+    /**
+     * @var string
+     */
+    private $sniHost;
 
     /**
      * Configure command
@@ -48,14 +58,28 @@ class CheckAlexaCsvFileCommand extends Command
                 'max',
                 'm',
                 InputOption::VALUE_OPTIONAL,
-                'Top x files?',
+                'Top x sites?',
                 100
             )
             ->addOption(
                 'output',
                 'o',
                 InputOption::VALUE_OPTIONAL,
-                'Output csv file'
+                'Path to csv output file'
+            )
+            ->addOption(
+                'timeout',
+                't',
+                InputOption::VALUE_OPTIONAL,
+                'Http timeout',
+                10
+            )
+            ->addOption(
+                'host',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Connect to which host for SNI',
+                'google.com'
             );
     }
 
@@ -71,15 +95,17 @@ class CheckAlexaCsvFileCommand extends Command
         $max = $input->getOption('max');
         $path = $input->getArgument('path');
         $outputFile = $input->getOption('output');
+        $this->httpTimeout = $input->getOption('timeout');
+        $this->sniHost = $input->getOption('host');
 
         if ($outputFile) {
             file_put_contents($outputFile, implode(',', [
-                'Rank',
-                'Site',
-                'SNI',
-                'HTTP',
-                'DNS'
-            ]) . "\n", FILE_APPEND);
+                    'Rank',
+                    'Site',
+                    'SNI',
+                    'HTTP',
+                    'DNS'
+                ]) . "\n", FILE_APPEND);
         }
 
         if (($handle = fopen($path, "r")) !== false) {
@@ -144,6 +170,8 @@ class CheckAlexaCsvFileCommand extends Command
     protected function checkSni($rank, $domain)
     {
         $sni = new Sni();
+        $sni->setHost($this->sniHost);
+
         if ($sni->blocked($domain)) {
             $this->stats['sni']++;
             $this->sites[$rank][2] = 'blocked';
@@ -164,7 +192,7 @@ class CheckAlexaCsvFileCommand extends Command
     protected function checkHttp($rank, $url)
     {
         $http = new Http();
-        $http->setTimeout(5);
+        $http->setTimeout($this->httpTimeout);
 
         if ($http->blocked($url)) {
             $this->stats['http']++;

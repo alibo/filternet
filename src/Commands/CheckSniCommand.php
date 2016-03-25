@@ -25,6 +25,13 @@ class CheckSniCommand extends Command
                 'domain',
                 InputArgument::REQUIRED,
                 'Domain name (example: youtube.com)'
+            )
+            ->addOption(
+                'host',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Connect to which host (example: google.com)',
+                'google.com'
             );
     }
 
@@ -41,6 +48,8 @@ class CheckSniCommand extends Command
         $upperDomain = strtoupper($lowerDomain);
 
         $sni = new Sni();
+        $sni->setHost($input->getOption('host'));
+
         $progress = new ProgressBar($output, 2);
 
         $lowerResult = $sni->blocked($lowerDomain) ? $this->blockedText() : $this->openText();

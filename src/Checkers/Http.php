@@ -37,7 +37,8 @@ class Http
      * @param string $url
      * @return bool
      */
-    public function blocked($url) {
+    public function blocked($url)
+    {
         $response = $this->request($url);
 
         return $this->isBlocked($response);

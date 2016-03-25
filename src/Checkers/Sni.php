@@ -12,6 +12,13 @@ class Sni
     private $domain;
 
     /**
+     * Host to connect via TLS
+     *
+     * @var string
+     */
+    private $host = 'https://google.com';
+
+    /**
      * whether domain is blocked
      *
      * @param $domain
@@ -63,7 +70,7 @@ class Sni
      */
     protected function request($context)
     {
-        return @file_get_contents('https://google.com', false, $context);
+        return @file_get_contents($this->host, false, $context);
     }
 
     /**
@@ -77,5 +84,13 @@ class Sni
         $meta = stream_context_get_options($context);
 
         return !isset($meta['ssl']['session_meta']['protocol']);
+    }
+
+    /**
+     * @param string $host
+     */
+    public function setHost($host)
+    {
+        $this->host = 'https://' . ltrim($host, 'https://');
     }
 }

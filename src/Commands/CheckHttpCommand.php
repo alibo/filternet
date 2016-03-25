@@ -25,6 +25,13 @@ class CheckHttpCommand extends Command
                 'url',
                 InputArgument::REQUIRED,
                 'Url (example: http://dropbox.com)'
+            )
+            ->addOption(
+                'timeout',
+                't',
+                InputOption::VALUE_OPTIONAL,
+                'Http timeout',
+                15
             );
     }
 
@@ -38,6 +45,7 @@ class CheckHttpCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $url = $input->getArgument('url');
+        $timeout = $input->getOption('timeout');
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             $output->writeln('<error>Url is invalid!</error>');
@@ -45,6 +53,7 @@ class CheckHttpCommand extends Command
         }
 
         $http = new Http();
+        $http->setTimeout($timeout);
         $progress = new ProgressBar($output, 100);
         $progress->advance(10);
         $result = $http->check($url);
