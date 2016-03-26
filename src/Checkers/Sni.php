@@ -44,7 +44,7 @@ class Sni
     {
         $options = [
             'http' => [
-                'method' => 'GET',
+                'method' => 'HEAD',
                 'follow_location' => false,
             ],
             'ssl' => [
