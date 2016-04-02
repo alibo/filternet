@@ -16,7 +16,7 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 $application->setName('Filternet Utility');
-$application->setVersion('1.1.1');
+$application->setVersion('1.2.0');
 $application->add(new CheckSniCommand());
 $application->add(new CheckDnsCommand());
 $application->add(new CheckHttpCommand());
