@@ -46,6 +46,7 @@ class Sni
             'http' => [
                 'method' => 'HEAD',
                 'follow_location' => false,
+                'user_agent' => 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0'
             ],
             'ssl' => [
                 'verify_peer' => true,
@@ -53,8 +54,8 @@ class Sni
                 'SNI_enabled' => true,
                 'disable_compression' => false,
                 'peer_name' => $this->domain,
-                'capture_peer_cert' => true,
-                'capture_peer_cert_chain' => true,
+                'capture_peer_cert' => false,
+                'capture_peer_cert_chain' => false,
                 'capture_session_meta' => true,
             ],
         ];
@@ -70,7 +71,7 @@ class Sni
      */
     protected function request($context)
     {
-        return @file_get_contents($this->host, false, $context);
+        return @file_get_contents($this->host, false, $context , null, 0);
     }
 
     /**

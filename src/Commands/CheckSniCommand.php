@@ -3,6 +3,7 @@
 namespace Filternet\Commands;
 
 use Filternet\Checkers\Sni;
+use Filternet\Utility\Status;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\Table;
@@ -52,9 +53,9 @@ class CheckSniCommand extends Command
 
         $progress = new ProgressBar($output, 2);
 
-        $lowerResult = $sni->blocked($lowerDomain) ? $this->blockedText() : $this->openText();
+        $lowerStatus = $this->status($sni->blocked($lowerDomain));
         $progress->advance();
-        $upperResult = $sni->blocked($upperDomain) ? $this->blockedText() : $this->openText();
+        $upperStatus = $this->status($sni->blocked($upperDomain));
         $progress->finish();
 
         $date = date('Y-m-d H:i:s');
@@ -65,32 +66,21 @@ class CheckSniCommand extends Command
         $table
             ->setHeaders(['SNI Name', 'Status', 'Date'])
             ->setRows([
-                [$lowerDomain, $lowerResult, $date],
-                [$upperDomain, $upperResult, $date]
+                [$lowerDomain, $lowerStatus, $date],
+                [$upperDomain, $upperStatus, $date]
             ]);
         $table->render();
-
-
-    }
-
-
-    /**
-     * Get blocked status text
-     *
-     * @return string
-     */
-    protected function blockedText()
-    {
-        return '<fg=red>Blocked</>';
     }
 
     /**
-     * Get open status text
+     * Get Status
      *
+     * @param bool $blocked
      * @return string
      */
-    protected function openText()
+    protected function status($blocked)
     {
-        return '<fg=green>Open</>';
+        return $blocked ? Status::blocked() : Status::open();
     }
+
 }

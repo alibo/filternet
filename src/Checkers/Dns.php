@@ -2,6 +2,8 @@
 
 namespace Filternet\Checkers;
 
+use Filternet\Utility\Status;
+use React\Dns\Resolver\Factory as DnsFactory;
 use React\EventLoop\LoopInterface;
 use React\Promise\PromiseInterface;
 
@@ -65,7 +67,7 @@ class Dns
      */
     protected function createDns($server)
     {
-        $factory = new \React\Dns\Resolver\Factory();
+        $factory = new DnsFactory();
 
         return $factory->create($server, $this->loop);
     }
@@ -92,8 +94,8 @@ class Dns
     {
         return $promise->then(function ($response) use ($domain) {
 
-            $lowerStatus = $this->isBlocked($response[0]) ? $this->blockedText() : $this->openText();
-            $upperStatus = $this->isBlocked($response[1]) ? $this->blockedText() : $this->openText();
+            $lowerStatus = $this->status($response[0]);
+            $upperStatus = $this->status($response[1]);
             $date = date('Y-m-d H:i:s');
 
             return [
@@ -104,25 +106,8 @@ class Dns
         });
     }
 
-    /**
-     * Get blocked status text
-     *
-     * @return string
-     */
-    protected function blockedText()
+    protected function status($ip)
     {
-        return '<fg=red>Blocked</>';
+        return $this->isBlocked($ip) ? Status::blocked() : Status::open();
     }
-
-    /**
-     * Get open status text
-     *
-     * @return string
-     */
-    protected function openText()
-    {
-        return '<fg=green>Open</>';
-    }
-
-
 }

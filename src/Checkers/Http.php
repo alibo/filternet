@@ -4,6 +4,8 @@
 namespace Filternet\Checkers;
 
 
+use Filternet\Utility\Status;
+
 class Http
 {
 
@@ -11,6 +13,10 @@ class Http
      * @var int
      */
     private $timeout = 15;
+
+    private $headers;
+
+    private $maxLength = 196;
 
     /**
      * Check status of url
@@ -24,7 +30,7 @@ class Http
 
         return [
             $url,
-            $this->fetchHttpStatus($url),
+            $this->fetchHttpStatus(),
             $this->findTitle($response),
             $this->findStatus($response),
             date('Y-m-d H:i:s')
@@ -67,6 +73,7 @@ class Http
                 'follow_location' => false,
                 'ignore_errors' => true,
                 'timeout' => $this->timeout,
+                'user_agent' => 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0'
             ],
         ];
 
@@ -82,7 +89,10 @@ class Http
      */
     protected function request($url)
     {
-        return @file_get_contents($url, false, $this->createContext());
+        $request = @file_get_contents($url, false, $this->createContext(), null, $this->maxLength);
+        $this->headers = @$http_response_header;
+
+        return $request;
     }
 
     /**
@@ -113,7 +123,7 @@ class Http
             return trim($matches[1]);
         }
 
-        return $this->unknownText();
+        return Status::unknown();
     }
 
     /**
@@ -126,55 +136,31 @@ class Http
     {
         if ($response !== false) {
             return $this->isBlocked($response)
-                ? $this->blockedText()
-                : $this->openText();
+                ? Status::blocked()
+                : Status::open();
         }
 
-        return $this->unknownText();
+        return Status::unknown();
     }
 
     /**
      * fetch http response status
      *
-     * @param string $url
      * @return string
      */
-    protected function fetchHttpStatus($url)
+    protected function fetchHttpStatus()
     {
-        $headers = @get_headers($url);
-
-        return count($headers) ? $headers[0] : $this->unknownText();
+        return count($this->headers) ? $this->headers[0] : Status::unknown();
     }
 
     /**
-     * Get blocked status text
+     * Set maximum length in bytes
      *
-     * @return string
+     * @param int $maxLength
      */
-    protected function blockedText()
+    public function setMaxLength($maxLength)
     {
-        return '<fg=red>Blocked</>';
+        $this->maxLength = $maxLength;
     }
-
-    /**
-     * Get open status text
-     *
-     * @return string
-     */
-    protected function openText()
-    {
-        return '<fg=green>Open</>';
-    }
-
-    /**
-     * Get unknown status text
-     *
-     * @return string
-     */
-    protected function unknownText()
-    {
-        return '<fg=blue>~UNKNOWN~</>';
-    }
-
 
 }

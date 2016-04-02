@@ -32,7 +32,15 @@ class CheckHttpCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Http timeout',
                 15
+            )
+            ->addOption(
+                'length',
+                'l',
+                InputOption::VALUE_OPTIONAL,
+                'Maximum length in bytes',
+                196
             );
+
     }
 
     /**
@@ -46,6 +54,7 @@ class CheckHttpCommand extends Command
     {
         $url = $input->getArgument('url');
         $timeout = $input->getOption('timeout');
+        $length = $input->getOption('length');
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             $output->writeln('<error>Url is invalid!</error>');
@@ -54,6 +63,8 @@ class CheckHttpCommand extends Command
 
         $http = new Http();
         $http->setTimeout($timeout);
+        $http->setMaxLength($length);
+
         $progress = new ProgressBar($output, 100);
         $progress->advance(10);
         $result = $http->check($url);
