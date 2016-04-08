@@ -2,6 +2,10 @@
 
 namespace Filternet\Checkers;
 
+/**
+ * Class Sni
+ * @package Filternet\Checkers
+ */
 class Sni
 {
     /**
@@ -16,7 +20,21 @@ class Sni
      *
      * @var string
      */
-    private $host = 'https://google.com';
+    private $host = 'google.com';
+
+    /**
+     * Request Timeout
+     *
+     * @var int
+     */
+    private $timeout = 20;
+
+    /**
+     * Error string
+     *
+     * @var String
+     */
+    private $error;
 
     /**
      * whether domain is blocked
@@ -30,9 +48,9 @@ class Sni
 
         $context = $this->createContext();
 
-        $this->request($context);
+        $client = $this->request($context);
 
-        return $this->failed($context);
+        return $this->failed($client);
     }
 
     /**
@@ -43,21 +61,14 @@ class Sni
     protected function createContext()
     {
         $options = [
-            'http' => [
-                'method' => 'HEAD',
-                'follow_location' => false,
-                'user_agent' => 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0'
-            ],
             'ssl' => [
                 'verify_peer' => true,
                 'verify_peer_name' => false,
                 'SNI_enabled' => true,
                 'disable_compression' => false,
                 'peer_name' => $this->domain,
-                'capture_peer_cert' => false,
-                'capture_peer_cert_chain' => false,
-                'capture_session_meta' => true,
-            ],
+                'capture_peer_cert' => true
+            ]
         ];
 
         return stream_context_create($options);
@@ -67,24 +78,44 @@ class Sni
      * Send a tls request
      *
      * @param resource $context
-     * @return string
+     * @return resource
      */
     protected function request($context)
     {
-        return @file_get_contents($this->host, false, $context , null, 0);
+        $this->error = null;
+
+        set_error_handler(function ($errno, $errstr) {
+            if ($this->error) {
+                return;
+            }
+
+            $errorLines = explode("\n", $errstr);
+            $this->error = ltrim(array_pop($errorLines), 'stream_socket_client() : ');
+        });
+
+        $client = stream_socket_client(
+            "tls://{$this->host}:443", $errno, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, $context
+        );
+
+        // remove previous error handler
+        restore_error_handler();
+
+        return $client;
     }
 
     /**
      * Is tls connection failed?
      *
-     * @param resource $context
+     * @param resource $client
      * @return bool
      */
-    protected function failed($context)
+    protected function failed($client)
     {
-        $meta = stream_context_get_options($context);
+        if (!is_resource($client) && $this->hasSslError($this->error)) {
+            return true;
+        }
 
-        return !isset($meta['ssl']['session_meta']['protocol']);
+        return false;
     }
 
     /**
@@ -92,6 +123,38 @@ class Sni
      */
     public function setHost($host)
     {
-        $this->host = 'https://' . ltrim($host, 'https://');
+        $this->host = ltrim($host, 'https://');
     }
+
+    /**
+     * Get error
+     *
+     * @return string|null
+     */
+    public function error()
+    {
+        return $this->error;
+    }
+
+    /**
+     * Set connection timeout
+     *
+     * @param int $timeout
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+
+    /**
+     * Whether the error message is related to ssl/tls failures
+     *
+     * @param $error
+     * @return int
+     */
+    protected function hasSslError($error)
+    {
+        return preg_match('/ssl/ism', $error) && !preg_match('/timed out/ism', $error);
+    }
+
 }

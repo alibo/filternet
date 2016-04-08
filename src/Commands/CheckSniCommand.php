@@ -28,6 +28,13 @@ class CheckSniCommand extends Command
                 'Domain name (example: youtube.com)'
             )
             ->addOption(
+                'timeout',
+                't',
+                InputOption::VALUE_OPTIONAL,
+                'Connection timeout',
+                20
+            )
+            ->addOption(
                 'host',
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -50,12 +57,18 @@ class CheckSniCommand extends Command
 
         $sni = new Sni();
         $sni->setHost($input->getOption('host'));
+        $sni->setTimeout($input->getOption('timeout'));
 
         $progress = new ProgressBar($output, 2);
 
         $lowerStatus = $this->status($sni->blocked($lowerDomain));
+        $lowerError = $sni->error() ?: Status::unknown();
+
         $progress->advance();
+
         $upperStatus = $this->status($sni->blocked($upperDomain));
+        $upperError = $sni->error() ?: Status::unknown();
+
         $progress->finish();
 
         $date = date('Y-m-d H:i:s');
@@ -64,10 +77,10 @@ class CheckSniCommand extends Command
 
         $table = new Table($output);
         $table
-            ->setHeaders(['SNI Name', 'Status', 'Date'])
+            ->setHeaders(['SNI Name', 'Status', 'Error', 'Date'])
             ->setRows([
-                [$lowerDomain, $lowerStatus, $date],
-                [$upperDomain, $upperStatus, $date]
+                [$lowerDomain, $lowerStatus, $lowerError, $date],
+                [$upperDomain, $upperStatus, $upperError, $date]
             ]);
         $table->render();
     }
