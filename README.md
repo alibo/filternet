@@ -3,10 +3,16 @@ A simple utility to check whether the given url/domain is blocked in Iran.
 
 ## Installation
 
-Run the following command to install this [package](https://packagist.org/packages/filternet/filternet):
+Install this [package](https://packagist.org/packages/filternet/filternet) via [Composer](https://getcomposer.org/download/):
 
 ~~~bash
 composer global require filternet/filternet
+~~~
+
+or via [cgr](https://github.com/consolidation-org/cgr):
+
+~~~bash
+cgr filternet/filternet
 ~~~
 
 ## Usage
