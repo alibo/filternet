@@ -154,7 +154,8 @@ class Sni
      */
     protected function hasSslError($error)
     {
-        return preg_match('/ssl/ism', $error) && !preg_match('/timed out/ism', $error);
+        return (preg_match('/ssl/ism', $error) || preg_match('/enable crypto/ism', $error))
+            && !preg_match('/timed out/ism', $error)
     }
 
 }
